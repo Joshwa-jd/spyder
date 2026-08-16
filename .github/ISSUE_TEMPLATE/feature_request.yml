@@ -1,0 +1,77 @@
+name: Feature request
+description: Suggest an improvement to SPYDER
+title: "[feature] "
+labels: [enhancement, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion.
+
+        SPYDER **maps and analyses** attack surface — it does not exploit.
+        Requests for exploitation payloads, automated attack sequences, or
+        scope/WAF evasion will be closed. See
+        [CONTRIBUTING.md](https://github.com/joshwa-n/spyder/blob/main/CONTRIBUTING.md#scope-posture--read-this-first).
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before you file
+      options:
+        - label: I searched existing issues and discussions
+          required: true
+        - label: This does not add exploitation, payloads, or scope/WAF evasion
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the situation you hit, not the solution you have in mind.
+      placeholder: "When resuming an engagement I can't tell which endpoints are new since the last scan."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like SPYDER to do?
+      placeholder: "`findings --since <date>`, or mark new endpoints in the table."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area?
+      options:
+        - CLI (one-shot commands)
+        - REPL (interactive console)
+        - Dashboard (Textual UI)
+        - Crawling / discovery
+        - Analysis / confidence scoring
+        - New connector for an existing tool
+        - Workspaces / persistence
+        - Reporting
+        - Plugin framework
+        - Documentation
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+      description: Including doing it outside SPYDER — could a plugin cover this?
+
+  - type: dropdown
+    id: contributing
+    attributes:
+      label: Would you be willing to implement it?
+      options:
+        - "Yes, with review guidance"
+        - "Yes, I already have a patch"
+        - "No, but I can test it"
+        - "No"
+    validations:
+      required: true

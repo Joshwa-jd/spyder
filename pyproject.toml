@@ -1,0 +1,109 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# ── Project metadata ──────────────────────────────────────────────────────────
+[project]
+name = "spyder-recon"
+# Read from spyder/__init__.py so there is exactly one place to bump.
+dynamic = ["version"]
+description = "SPYDER — modular red-team recon, discovery, analysis & reporting platform."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "SPYDER Project" }]
+keywords = ["security", "recon", "bug-bounty", "pentest", "orchestration"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+]
+
+# All dependencies required for `spyder` to work after install.
+# No optional splits here — a partial install is worse than a slightly heavier install.
+dependencies = [
+    "httpx[http2]>=0.27",
+    "rich>=13.7",
+    "textual>=0.58",
+    "prompt_toolkit>=3.0",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "jinja2>=3.1",
+    "pyyaml>=6.0",
+    "beautifulsoup4>=4.12",
+]
+
+[project.optional-dependencies]
+fast = [
+    "uvloop>=0.19 ; sys_platform != 'win32'",
+    "orjson>=3.10",
+]
+pdf = ["weasyprint>=61.0"]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4",
+    "respx>=0.21",
+    "mypy>=1.9",
+]
+
+# ── CLI entry point ───────────────────────────────────────────────────────────
+#
+# This is the ONLY thing that matters for `spyder` to work after install.
+# It points to spyder.__main__:main — the single function that handles all modes:
+#   spyder                → REPL
+#   spyder scan -u ...    → one-shot
+#   spyder --help         → help
+#   spyder --version      → version
+#
+[project.scripts]
+spyder = "spyder.__main__:main"
+
+# ── Package discovery ─────────────────────────────────────────────────────────
+#
+# setuptools finds `spyder/` at the project root.
+# `where = ["."]` + `include = ["spyder*"]` is the minimal correct config.
+#
+[tool.setuptools.dynamic]
+version = { attr = "spyder.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["spyder*"]
+
+[tool.setuptools.package-data]
+"spyder.ui" = ["assets/*.svg"]
+"spyder.reporting" = ["templates/*.j2"]
+# PEP 561 marker: SPYDER ships inline type hints, so downstream code importing
+# spyder (plugins, wrappers) gets them from mypy/pyright without a stub package.
+"spyder" = ["py.typed"]
+
+# ── pytest ────────────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+markers = [
+    "pty: drives the real CLI on a pseudo-terminal (slow; needs a Unix pty)",
+]
+
+# ── ruff ─────────────────────────────────────────────────────────────────────
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["spyder"]
+
+# ── mypy ─────────────────────────────────────────────────────────────────────
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true

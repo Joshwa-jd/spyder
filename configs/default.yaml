@@ -1,0 +1,31 @@
+# SPYDER — default profile
+# Load with:  python3 main.py --profile configs/default.yaml
+# or inside the console:  (profiles are applied at startup)
+
+passive_mode: false
+
+http:
+  timeout: 20.0
+  max_connections: 50
+  max_retries: 2
+  http2: true
+  verify_tls: true
+  follow_redirects: true
+  # Route everything through Burp by uncommenting:
+  # proxy: "http://127.0.0.1:8080"
+  user_agents:
+    - "Mozilla/5.0 (X11; Linux x86_64) SPYDER/0.1 (+authorized-testing)"
+  default_headers: {}
+
+crawl:
+  max_depth: 3
+  max_pages: 500
+  concurrency: 10
+  respect_robots: true
+  parse_sitemap: true
+  extract_js_endpoints: true
+  rate_limit_per_sec: 10.0
+
+rate_limit:
+  requests_per_second: 10.0
+  burst: 20

@@ -1,0 +1,31 @@
+# SPYDER — passive / low-noise profile
+# Load with:  python3 main.py --profile configs/passive.yaml
+#
+# Passive mode: crawl & fingerprint only, no active parameter probing.
+# Conservative rate limits to stay quiet on sensitive engagements.
+
+passive_mode: true
+
+http:
+  timeout: 30.0
+  max_connections: 10
+  max_retries: 1
+  http2: true
+  verify_tls: true
+  follow_redirects: true
+  user_agents:
+    - "Mozilla/5.0 (X11; Linux x86_64; rv:124.0) Gecko/20100101 Firefox/124.0"
+    - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15"
+
+crawl:
+  max_depth: 2
+  max_pages: 150
+  concurrency: 3
+  respect_robots: true
+  parse_sitemap: true
+  extract_js_endpoints: true
+  rate_limit_per_sec: 2.0
+
+rate_limit:
+  requests_per_second: 2.0
+  burst: 4
