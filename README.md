@@ -295,7 +295,7 @@ SPYDER/
 ├── configs/             ← YAML profiles
 ├── docs/                ← install, quickstart, architecture, plugins
 ├── plugins/             ← example plugin
-└── tests/               ← 554 tests
+└── tests/               ← 415 tests
 ```
 
 Every command — REPL, CLI, or dashboard — travels one named pipeline:
@@ -380,8 +380,8 @@ workspaces, reports, logs, plugins.
 
 ```bash
 pip install -e ".[dev]"
-pytest                 # 554 tests, ~13 min
-pytest -m "not pty"    # 527 of them, ~1 min — skips the terminal tests
+pytest                 # 415 tests, ~13 min
+pytest -m "not pty"    # 388 of them, ~1 min — skips the terminal tests
 ruff check .
 mypy spyder/
 ```

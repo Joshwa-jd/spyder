@@ -36,8 +36,8 @@ git clone https://github.com/joshwa-n/spyder.git
 cd spyder
 python3 -m venv venv && source venv/bin/activate
 pip install -e ".[dev]"
-pytest                 # 554 tests, ~13 min
-pytest -m "not pty"    # 527 of them, ~1 min — skips the terminal tests
+pytest                 # 415 tests, ~13 min
+pytest -m "not pty"    # 388 of them, ~1 min — skips the terminal tests
 ```
 
 The 27 `pty`-marked cases drive the real CLI on a pseudo-terminal, so they cost
