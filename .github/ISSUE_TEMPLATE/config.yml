@@ -1,0 +1,13 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/joshwa-n/spyder/security/advisories/new
+    about: Report privately. Never open a public issue for a vulnerability.
+
+  - name: Question or usage help
+    url: https://github.com/joshwa-n/spyder/discussions
+    about: Ask in Discussions — issues are for bugs and feature requests.
+
+  - name: Documentation
+    url: https://github.com/joshwa-n/spyder/tree/main/docs
+    about: Install, quickstart, architecture, and plugin development guides.

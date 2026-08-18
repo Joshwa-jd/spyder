@@ -1,0 +1,108 @@
+{#
+  _macros.j2 — SPYDER report macro library
+  Import with context so macros can read `palette` from the calling template:
+    {% from "_macros.html.j2" import section_header, sev_badge, ref_tag, finding_card with context %}
+#}
+
+{# ── Section header  ◢ TITLE ◣ ──────────────────────────────────────── #}
+{% macro section_header(title) -%}
+<div class="section-header">
+  <span class="s-bracket">◢</span>
+  <span class="s-title">{{ title }}</span>
+  <span class="s-rule"></span>
+  <span class="s-bracket">◣</span>
+</div>
+{%- endmacro %}
+
+{# ── Severity badge pill ─────────────────────────────────────────────── #}
+{% macro sev_badge(sev) -%}
+{%- set c = palette.severity[sev] -%}
+<span class="sev-badge"
+  style="color:{{ c }};background:{{ c }}1a;border:1px solid {{ c }}55;">
+  {{- sev | upper -}}
+</span>
+{%- endmacro %}
+
+{# ── CWE reference tag ───────────────────────────────────────────────── #}
+{% macro cwe_tag(text) -%}
+<span class="ref-tag ref-cwe"
+  style="color:{{ palette.muted }};background:{{ palette.ember }}22;border:1px solid {{ palette.ember }}55;">
+  {{- text -}}
+</span>
+{%- endmacro %}
+
+{# ── OWASP reference tag ─────────────────────────────────────────────── #}
+{% macro owasp_tag(text) -%}
+<span class="ref-tag ref-owasp"
+  style="color:{{ palette.muted }};background:{{ palette.deep_red }}1a;border:1px solid {{ palette.deep_red }}44;">
+  {{- text -}}
+</span>
+{%- endmacro %}
+
+{# ── Key / value metadata row ────────────────────────────────────────── #}
+{% macro kv(key, value) -%}
+<div class="kv-row">
+  <span class="kv-key">{{ key }}</span>
+  <span class="kv-val">{{ value }}</span>
+</div>
+{%- endmacro %}
+
+{# ── Full finding card ───────────────────────────────────────────────── #}
+{% macro finding_card(f) %}
+{%- set sev = f.severity.value -%}
+{%- set sc  = palette.severity[sev] -%}
+<article class="finding-card" style="border-left-color:{{ sc }};">
+  <div class="finding-header">
+    {{ sev_badge(sev) }}
+    <h3 class="finding-title">{{ f.title }}</h3>
+  </div>
+
+  {% if f.endpoint %}
+  <div class="kv-row">
+    <span class="kv-key">endpoint</span><code class="endpoint">{{ f.endpoint }}</code>
+  </div>
+  {% endif %}
+  {{ kv("source", f.source) }}
+  {# Confidence sits next to severity deliberately: severity is how bad it
+     would be, confidence is how sure we are it is there. A reader triaging a
+     report needs both, and the score disambiguates a level like "high" from
+     the severity column beside it. #}
+  {{ kv("confidence", f.confidence ~ " (" ~ f.confidence_score ~ "/100)") }}
+  <div class="kv-row">
+    <span class="kv-key">recorded</span>
+    <span class="kv-val">{{ f.created.strftime('%Y-%m-%d %H:%M UTC') }}</span>
+  </div>
+
+  {% if f.description %}
+  <p class="description">{{ f.description }}</p>
+  {% endif %}
+
+  {% if f.cwe or f.owasp %}
+  <div class="tag-row">
+    {% for c in f.cwe %}{{ cwe_tag(c) }}{% endfor %}
+    {% for o in f.owasp %}{{ owasp_tag(o) }}{% endfor %}
+  </div>
+  {% endif %}
+
+  {% if f.remediation %}
+  <div class="remediation">
+    <span class="kv-key">remediation</span><span class="kv-val">{{ f.remediation }}</span>
+  </div>
+  {% endif %}
+
+  {% if f.evidence %}
+  <div class="evidence-label">Evidence</div>
+  <pre class="evidence-block">{{ f.evidence | tojson(indent=2) }}</pre>
+  {% endif %}
+
+  {# Rendered as text, not as <a href>: these URLs come from the catalogue, but
+     a finding relayed by a connector could carry attacker-influenced ones, and
+     a report is opened in an analyst's browser. #}
+  {% if f.references %}
+  <div class="evidence-label">References</div>
+  <ul class="reference-list">
+    {% for r in f.references %}<li>{{ r }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+</article>
+{% endmacro %}

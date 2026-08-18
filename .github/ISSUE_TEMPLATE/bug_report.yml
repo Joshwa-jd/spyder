@@ -1,0 +1,130 @@
+name: Bug report
+description: Something in SPYDER does not work as documented
+title: "[bug] "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug.
+
+        **Do not report security vulnerabilities here** — use a
+        [private advisory](https://github.com/joshwa-n/spyder/security/advisories/new)
+        instead. See [SECURITY.md](https://github.com/joshwa-n/spyder/blob/main/SECURITY.md).
+
+        **Redact everything from unauthorized or client systems** — hostnames,
+        IPs, findings, credentials, session tokens.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before you file
+      options:
+        - label: I searched existing issues and this is not a duplicate
+          required: true
+        - label: I am reporting a bug, not a vulnerability
+          required: true
+        - label: All target data below is redacted or from a system I am authorized to test
+          required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did SPYDER do?
+      placeholder: "`spyder report --format pdf` exits 1 with a traceback instead of a message."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      placeholder: "A clear message telling me to install the pdf extra."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Exact commands, starting from a clean state if possible.
+      value: |
+        1. `export SPYDER_HOME=/tmp/spyder-repro`
+        2. `spyder -w test ...`
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: |
+        Paste the output. Re-run with `--debug` for a full traceback.
+        Logs are in `$SPYDER_HOME/logs/spyder.log`.
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: SPYDER version
+      description: "`spyder --version`"
+      placeholder: "SPYDER 1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      description: "`python3 --version`"
+      placeholder: "Python 3.12.3"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Kali Linux 2025.2 / Ubuntu 24.04"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install SPYDER?
+      options:
+        - "pip install -e . (editable, from a clone)"
+        - "pip install . (from a clone)"
+        - "pip install spyder-recon"
+        - "Other"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area?
+      options:
+        - CLI (one-shot commands)
+        - REPL (interactive console)
+        - Dashboard (Textual UI)
+        - Scan / crawl
+        - Connectors (external tools)
+        - Workspaces / database
+        - Reporting (HTML/JSON/MD/PDF)
+        - Plugins
+        - Installation / packaging
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Workarounds you found, when it started, related issues.

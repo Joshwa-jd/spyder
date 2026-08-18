@@ -1,0 +1,371 @@
+{% from "_macros.html.j2" import section_header, sev_badge, finding_card with context %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPYDER · {{ workspace }} · Intelligence Report</title>
+<style>
+/* ── PALETTE (sourced from spyder/ui/theme.py via Jinja context) ─────── */
+:root {
+  --neon-red:   {{ palette.neon_red }};
+  --deep-red:   {{ palette.deep_red }};
+  --ember:      {{ palette.ember }};
+  --bg:         {{ palette.bg }};
+  --panel:      {{ palette.panel_bg }};
+  --rule:       {{ palette.rule }};
+  --fg:         {{ palette.fg }};
+  --muted:      {{ palette.muted }};
+  --subtle:     {{ palette.subtle }};
+
+  --sev-critical: {{ palette.severity.critical }};
+  --sev-high:     {{ palette.severity.high }};
+  --sev-medium:   {{ palette.severity.medium }};
+  --sev-low:      {{ palette.severity.low }};
+  --sev-info:     {{ palette.severity.info }};
+}
+
+/* ── RESET ───────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── BASE ────────────────────────────────────────────────────────────── */
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.65
+    "JetBrains Mono", "Cascadia Code", "SF Mono", ui-monospace,
+    Menlo, Consolas, monospace;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--neon-red); text-decoration: none; }
+code { font-family: inherit; }
+
+/* ── LAYOUT ──────────────────────────────────────────────────────────── */
+.wrap { max-width: 960px; margin: 0 auto; padding: 40px 28px 64px; }
+
+/* ── HUD HEADER ──────────────────────────────────────────────────────── */
+.hud-header {
+  border: 2px solid var(--neon-red);
+  background: var(--panel);
+  padding: 28px 32px 24px;
+  margin-bottom: 44px;
+  position: relative;
+}
+/* bottom-corner chrome marks */
+.hud-header::before,
+.hud-header::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  bottom: -2px;
+}
+.hud-header::before {
+  left: -2px;
+  border-bottom: 2px solid var(--neon-red);
+  border-left:   2px solid var(--neon-red);
+}
+.hud-header::after {
+  right: -2px;
+  border-bottom: 2px solid var(--neon-red);
+  border-right:  2px solid var(--neon-red);
+}
+
+.header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.logo-zone svg  { max-width: 200px; height: auto; display: block; }
+.logo-fallback  {
+  font-size: 30px; font-weight: 700; letter-spacing: 8px;
+  color: var(--neon-red); line-height: 1;
+}
+.logo-fallback .accent { color: var(--fg); }
+
+.classification {
+  font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--neon-red);
+  border: 1px solid var(--neon-red);
+  padding: 4px 10px; white-space: nowrap;
+  align-self: flex-start;
+}
+
+.header-rule {
+  border: none;
+  border-top: 1px solid var(--neon-red);
+  opacity: .3;
+  margin-bottom: 16px;
+}
+
+.report-eyebrow {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 6px;
+  color: var(--muted); margin-bottom: 4px;
+}
+.report-title {
+  font-size: 20px; font-weight: 700; letter-spacing: 4px;
+  color: var(--fg); margin-bottom: 20px;
+  text-shadow: 0 0 24px {{ palette.neon_red }}33;
+}
+
+.meta-bar {
+  display: flex; flex-wrap: wrap; gap: 0 28px;
+  font-size: 11px; color: var(--muted);
+  letter-spacing: .5px;
+}
+.meta-key  { color: var(--subtle); text-transform: uppercase;
+             font-size: 9px; letter-spacing: 2px; margin-right: 5px; }
+.meta-val  { color: var(--fg); }
+.meta-total { color: var(--neon-red); font-weight: 700; }
+
+/* ── SECTION HEADER  ◢ TITLE ◣ ──────────────────────────────────────── */
+.section-header {
+  display: flex; align-items: center; gap: 10px;
+  margin: 40px 0 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--neon-red);
+  color: var(--neon-red);
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 5px;
+}
+.s-bracket { font-size: 15px; opacity: .65; flex-shrink: 0; }
+.s-title   { flex-shrink: 0; }
+.s-rule    { flex: 1; border-top: 1px solid var(--rule); }
+
+/* ── RISK MATRIX ─────────────────────────────────────────────────────── */
+.risk-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+.risk-card {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-top: 3px solid transparent;
+  padding: 18px 10px;
+  text-align: center;
+}
+.risk-card[data-sev="critical"] { border-top-color: var(--sev-critical); }
+.risk-card[data-sev="high"]     { border-top-color: var(--sev-high); }
+.risk-card[data-sev="medium"]   { border-top-color: var(--sev-medium); }
+.risk-card[data-sev="low"]      { border-top-color: var(--sev-low); }
+.risk-card[data-sev="info"]     { border-top-color: var(--sev-info); }
+
+.risk-count {
+  font-size: 36px; font-weight: 700; line-height: 1; margin-bottom: 7px;
+}
+.risk-card[data-sev="critical"] .risk-count { color: var(--sev-critical); }
+.risk-card[data-sev="high"]     .risk-count { color: var(--sev-high); }
+.risk-card[data-sev="medium"]   .risk-count { color: var(--sev-medium); }
+.risk-card[data-sev="low"]      .risk-count { color: var(--sev-low); }
+.risk-card[data-sev="info"]     .risk-count { color: var(--sev-info); }
+
+.risk-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 3px;
+  color: var(--muted);
+}
+
+/* ── FINDING CARD ────────────────────────────────────────────────────── */
+.finding-card {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-left: 4px solid transparent;
+  padding: 20px 24px;
+  margin-bottom: 10px;
+}
+.finding-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+}
+.finding-title {
+  font-size: 15px; font-weight: 700; color: var(--fg); line-height: 1.3;
+}
+
+/* severity badge */
+.sev-badge {
+  display: inline-block;
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 2px;
+  padding: 3px 9px; white-space: nowrap; flex-shrink: 0;
+}
+
+/* kv rows */
+.kv-row {
+  font-size: 12px; color: var(--muted);
+  margin: 3px 0; line-height: 1.55;
+  display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;
+}
+.kv-key {
+  color: var(--subtle); text-transform: lowercase;
+  letter-spacing: .5px; flex-shrink: 0; min-width: 80px;
+}
+.kv-val  { color: var(--fg); }
+.endpoint { color: var(--fg); word-break: break-all; }
+
+/* description */
+.description {
+  font-size: 13px; color: var(--fg);
+  margin: 12px 0; line-height: 1.75;
+}
+
+/* tags */
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 9px 0; }
+.ref-tag {
+  font-size: 10px; letter-spacing: .5px;
+  padding: 2px 8px; white-space: nowrap;
+}
+
+/* remediation */
+.remediation {
+  font-size: 12px; color: var(--fg); margin-top: 10px;
+  display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;
+}
+.remediation .kv-key { min-width: 80px; }
+
+/* evidence */
+.evidence-label {
+  font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--subtle); margin: 14px 0 5px;
+}
+.evidence-block {
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--deep-red);
+  padding: 13px 16px;
+  overflow-x: auto;
+  font-size: 11px; line-height: 1.6;
+  color: var(--sev-low);
+  white-space: pre; word-break: normal;
+}
+
+/* references — wrap rather than scroll; a truncated URL is not a reference */
+.reference-list {
+  list-style: none; padding: 0; margin: 0;
+  font-size: 11px; line-height: 1.7; color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.reference-list li { padding-left: 12px; position: relative; }
+.reference-list li::before {
+  content: "↗"; position: absolute; left: 0; color: var(--subtle);
+}
+
+/* no-findings */
+.no-findings { color: var(--muted); font-size: 13px; padding: 18px 0; }
+
+/* attack-surface diagrams */
+.diagram { margin: 0 0 22px 0; }
+.diagram-caption {
+  color: var(--muted); font-size: 12px; text-transform: uppercase;
+  letter-spacing: 0.08em; margin-bottom: 6px;
+}
+.diagram-svg { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; }
+.diagram-svg svg { display: block; max-width: 100%; }
+
+/* ── FOOTER ──────────────────────────────────────────────────────────── */
+.hud-footer {
+  margin-top: 56px;
+  padding-top: 18px;
+  border-top: 2px solid var(--rule);
+  text-align: center;
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--subtle);
+}
+.hud-footer .brand { color: var(--neon-red); font-weight: 700; }
+.hud-footer .disc  { margin-top: 7px; opacity: .55; font-size: 9px; }
+
+/* ── PRINT / PDF ─────────────────────────────────────────────────────── */
+@media print {
+  body          { background: {{ palette.print_bg }};    color: {{ palette.print_fg }}; }
+  .hud-header   { background: {{ palette.print_panel }}; border-color: {{ palette.print_rule }}; }
+  .finding-card { background: {{ palette.print_panel }}; border-color: {{ palette.print_rule }}; }
+  .risk-card    { background: {{ palette.print_panel }}; border-color: {{ palette.print_rule }}; }
+  .evidence-block {
+    background: {{ palette.print_panel }};
+    color: {{ palette.print_code }};
+    border-color: {{ palette.print_rule }};
+  }
+  .hud-header::before, .hud-header::after { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+{# ── HEADER ──────────────────────────────────────────────────────────── #}
+<header class="hud-header">
+  <div class="header-top">
+    <div>
+      {% if logo_svg %}
+        <div class="logo-zone">{{ logo_svg | safe }}</div>
+      {% else %}
+        <div class="logo-fallback">SP<span class="accent">Y</span>DER</div>
+      {% endif %}
+    </div>
+    <span class="classification">Authorized Use Only</span>
+  </div>
+
+  <div class="report-eyebrow">Red Team Intelligence Report</div>
+  <div class="report-title">SPYDER · INTELLIGENCE DOSSIER</div>
+
+  <hr class="header-rule">
+
+  <div class="meta-bar">
+    <span>
+      <span class="meta-key">Workspace</span>
+      <span class="meta-val">{{ workspace }}</span>
+    </span>
+    <span>
+      <span class="meta-key">Target</span>
+      <span class="meta-val">{{ target }}</span>
+    </span>
+    <span>
+      <span class="meta-key">Generated</span>
+      <span class="meta-val">{{ generated }}</span>
+    </span>
+    <span class="meta-total">
+      {{ total }} Finding{% if total != 1 %}s{% endif %}
+    </span>
+  </div>
+</header>
+
+{# ── RISK MATRIX ─────────────────────────────────────────────────────── #}
+{{ section_header("Risk Matrix") }}
+
+<div class="risk-grid">
+  {% for sev in ["critical", "high", "medium", "low", "info"] %}
+  <div class="risk-card" data-sev="{{ sev }}">
+    <div class="risk-count">{{ counts[sev] }}</div>
+    <div class="risk-label">{{ sev }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+{# ── ATTACK-SURFACE INTELLIGENCE ─────────────────────────────────────── #}
+{% if diagrams %}
+{{ section_header("Attack-Surface Intelligence") }}
+{% for d in diagrams %}
+<figure class="diagram">
+  <figcaption class="diagram-caption">{{ d.title }}</figcaption>
+  <div class="diagram-svg">{{ d.svg | safe }}</div>
+</figure>
+{% endfor %}
+{% endif %}
+
+{# ── FINDINGS ─────────────────────────────────────────────────────────── #}
+{{ section_header("Findings") }}
+
+{% for f in findings %}
+  {{ finding_card(f) }}
+{% else %}
+  <p class="no-findings">No findings recorded for this workspace.</p>
+{% endfor %}
+
+{# ── FOOTER ──────────────────────────────────────────────────────────── #}
+<footer class="hud-footer">
+  <div><span class="brand">SPYDER</span> · Red Team Console · {{ generated }}</div>
+  <div class="disc">All findings require manual verification before reporting. For authorized testing only.</div>
+</footer>
+
+</div>
+</body>
+</html>

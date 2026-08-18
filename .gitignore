@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.so
+.venv/
+venv/
+env/
+.env
+# Local throwaway virtualenvs used for verification / release testing
+verify-env/
+release-test/
+# Harness run artifacts — measurements belong in the engineering report, not in git
+verification/perf/results.json
+verification/stress/results.json
+verification/comparison/*_results.json
+.perf-home/
+
+# SPYDER runtime data (project-local, excluded from version control)
+workspaces/
+reports/
+db/
+logs/
+runtime/
+
+# Editor / tool caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Distribution
+MANIFEST
+
+# Local agent/editor session state
+.claude/

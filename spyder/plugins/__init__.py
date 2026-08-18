@@ -1,0 +1,1 @@
+"""SPYDER plugins package."""

@@ -1,0 +1,123 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build (e.g. v1.0.0)"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify the tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+
+      - name: Full suite must pass
+        run: |
+          ruff check .
+          mypy spyder/
+          pytest -q
+
+      - name: Tag must match spyder.__version__
+        run: |
+          set -euo pipefail
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          VERSION=$(python -c "import spyder; print(spyder.__version__)")
+          echo "tag=$TAG version=$VERSION"
+          test "$TAG" = "v$VERSION" || {
+            echo "::error::tag $TAG does not match spyder.__version__ ($VERSION)"
+            exit 1
+          }
+
+      - name: CHANGELOG must have a section for this version
+        run: |
+          set -euo pipefail
+          VERSION=$(python -c "import spyder; print(spyder.__version__)")
+          grep -q "^## \[$VERSION\]" CHANGELOG.md || {
+            echo "::error::CHANGELOG.md has no '## [$VERSION]' section"
+            exit 1
+          }
+
+  build:
+    name: Build distributions
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Build
+        run: |
+          pip install build twine
+          python -m build
+          twine check dist/*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: Publish GitHub release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create the release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          draft: true
+          body: |
+            See [CHANGELOG.md](https://github.com/joshwa-n/spyder/blob/main/CHANGELOG.md)
+            for the full list of changes.
+
+            ## Install
+
+            ```bash
+            pip install spyder-recon==${{ github.ref_name }}
+            ```
+
+            **Authorized testing only.** See [SECURITY.md](https://github.com/joshwa-n/spyder/blob/main/SECURITY.md).
+
+  # PyPI publishing is deliberately left disabled until the project name is
+  # claimed and a Trusted Publisher is configured for this repository. To
+  # enable: reserve the name on PyPI, add this repo as a trusted publisher,
+  # then uncomment the job below.
+  #
+  # pypi:
+  #   name: Publish to PyPI
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   environment: pypi
+  #   permissions:
+  #     id-token: write
+  #   steps:
+  #     - uses: actions/download-artifact@v4
+  #       with:
+  #         name: dist
+  #         path: dist/
+  #     - uses: pypa/gh-action-pypi-publish@release/v1
